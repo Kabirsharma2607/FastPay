@@ -1,0 +1,76 @@
+const express = require("express");
+const { JWT_SECRET } = require("../config");
+const { authMiddleware } = require("../middleware");
+const { Account } = require("../db");
+const accountRouter = express.Router();
+
+accountRouter.get("/balance", authMiddleware, async (req, res) => {
+  const body = req.body;
+  const account = await Account.findOne({
+    userId: body.userId,
+  });
+
+  return res.status(200).json({
+    balance: account.balance,
+  });
+});
+
+accountRouter.post("/transfer", authMiddleware, async (req, res) => {
+  const session = await mongoose.startSession();
+
+  session.startTransaction();
+
+  const { amount, to } = req.body;
+
+  const account = await Account.findOne({
+    userId: req.userId,
+  }).session(session);
+
+  if (!account || account.balance < amount) {
+    await session.abortTransaction();
+    return res.status(400).json({
+      message: "Insufficient balance",
+    });
+  }
+
+  const toAccount = await Account.findOne({
+    userId: to,
+  }).session(sesssion);
+
+  if (!toAccount) {
+    await session.abortTransaction();
+    return res.status(400).json({
+      message: "Account does not exist",
+    });
+  }
+
+  await Account.updateOne(
+    {
+      userId: req.userId,
+    },
+    {
+      $inc: {
+        balance: -amount,
+      },
+    }
+  ).session(session);
+
+  await Account.updateOne(
+    {
+      userId: req.userId,
+    },
+    {
+      $inc: {
+        balance: amount,
+      },
+    }
+  ).session(session);
+
+  await session.commitTransaction();
+
+  return res.status(200).json({
+    message: "Transfer successful",
+  });
+});
+
+module.exports = accountRouter;
