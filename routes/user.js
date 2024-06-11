@@ -127,7 +127,7 @@ userRouter.put("/", authMiddleware, async (req, res) => {
   });
 });
 
-userRouter.get("/bulk", authMiddleware, async (req, res) => {
+userRouter.get("/bulk", async (req, res) => {
   const filter = req.query.filter || "";
   const users = await User.find({
     $or: [
@@ -144,13 +144,15 @@ userRouter.get("/bulk", authMiddleware, async (req, res) => {
     ],
   });
 
+  const allUsers = users.map((user) => ({
+    username: user.username,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    _id: user._id,
+  }));
+  console.log(allUsers);
   return res.json({
-    users: users.map((user) => ({
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      _id: user._id,
-    })),
+    users: allUsers,
   });
 });
 module.exports = userRouter;
