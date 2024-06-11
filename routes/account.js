@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const { JWT_SECRET } = require("../config");
 const { authMiddleware } = require("../middleware");
 const { Account } = require("../db");
@@ -6,10 +7,11 @@ const accountRouter = express.Router();
 
 accountRouter.get("/balance", authMiddleware, async (req, res) => {
   const body = req.body;
+  console.log(body);
   const account = await Account.findOne({
     userId: body.userId,
   });
-
+  console.log(account);
   return res.status(200).json({
     balance: account.balance,
   });
@@ -21,11 +23,17 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
   session.startTransaction();
 
   const { amount, to } = req.body;
-
+  console.log(req.userId);
   const account = await Account.findOne({
     userId: req.userId,
   }).session(session);
-
+  console.log(account);
+  if (!account) {
+    await session.abortTransaction();
+    return res.status(400).json({
+      message: "No account",
+    });
+  }
   if (!account || account.balance < amount) {
     await session.abortTransaction();
     return res.status(400).json({
@@ -35,7 +43,7 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
 
   const toAccount = await Account.findOne({
     userId: to,
-  }).session(sesssion);
+  }).session(session);
 
   if (!toAccount) {
     await session.abortTransaction();
@@ -57,7 +65,7 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
 
   await Account.updateOne(
     {
-      userId: req.userId,
+      userId: to,
     },
     {
       $inc: {

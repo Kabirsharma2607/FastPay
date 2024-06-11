@@ -62,7 +62,7 @@ userRouter.post("/signup", async (req, res) => {
 
   const newAccount = await Account.create({
     userId,
-    balance: 1 + Math.random() * 1000,
+    balance: 1 + Math.random() * 10000,
   });
 
   return res.status(200).json({
@@ -99,6 +99,7 @@ userRouter.post("/signin", async (req, res) => {
   );
 
   return res.status(200).json({
+    success: true,
     token: token,
   });
 });
@@ -137,14 +138,14 @@ userRouter.get("/bulk", async (req, res) => {
       },
       {
         lastName: {
-          $regex: fiter,
+          $regex: filter,
         },
       },
     ],
   });
 
   return res.json({
-    user: users.map((user) => ({
+    users: users.map((user) => ({
       username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
