@@ -2,7 +2,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
-  console.log("In middle");
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(403).json({});
