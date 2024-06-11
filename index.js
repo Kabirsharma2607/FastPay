@@ -10,6 +10,10 @@ app.use(express.json());
 
 app.use("/api/v1", mainRouter);
 
+app.get("/", (req, res) => {
+  return res.send("Hello World");
+});
+
 app.listen(PORT, () => {
   console.log(`App is listening on port ${PORT}`);
 });
