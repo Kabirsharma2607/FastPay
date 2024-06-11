@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const { JWT_SECRET } = require("../config");
+const JWT_SECRET = process.env.JWT_SECRET;
 const { authMiddleware } = require("../middleware");
 const { Account } = require("../db");
 const accountRouter = express.Router();
