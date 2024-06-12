@@ -51,7 +51,7 @@ userRouter.post("/signup", async (req, res) => {
   //console.log();
   const user = await User.create({
     username: body.username,
-    password: newPassword,
+    password: newPassword.hash,
     firstName: body.firstName,
     lastName: body.lastName,
   });
@@ -90,8 +90,14 @@ userRouter.post("/signin", async (req, res) => {
   const user = await User.findOne({
     username: body.username,
   });
-  if (comparePassword !== user.password) {
-    return res.send(403).json({
+  if (!user) {
+    return res.status(403).json({
+      message: "Invalid user",
+    });
+  }
+  //console.log(user);
+  if (comparePassword.hash !== user.password) {
+    return res.status(403).json({
       message: "Inccorect Password",
     });
   }
