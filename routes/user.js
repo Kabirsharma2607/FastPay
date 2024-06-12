@@ -89,9 +89,12 @@ userRouter.post("/signin", async (req, res) => {
 
   const user = await User.findOne({
     username: body.username,
-    password: body.password,
   });
-
+  if (comparePassword !== user.password) {
+    return res.send(403).json({
+      message: "Inccorect Password",
+    });
+  }
   if (!user) {
     return res.status(411).json({
       message: "User doesn't exist",
