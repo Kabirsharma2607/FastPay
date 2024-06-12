@@ -26,7 +26,7 @@ const updateZod = zod.object({
   lastName: zod.string().optional(),
 });
 
-userRouter.post("/signup", async (req, res) => {
+userRouter.post("/", async (req, res) => {
   const body = req.body;
   const { success } = userZod.safeParse(body);
 
@@ -42,13 +42,15 @@ userRouter.post("/signup", async (req, res) => {
 
   if (existingUser) {
     return res.status(411).json({
+      success: false,
       message: "User Already Exists",
     });
   }
   const salt = body.username.split("@")[0];
+  console.log(salt);
   const newPassword = await hashPassword(body.password, salt);
 
-  //console.log(newPassword);
+  console.log(newPassword);
   //console.log();
   const user = await User.create({
     username: body.username,
@@ -72,40 +74,52 @@ userRouter.post("/signup", async (req, res) => {
   });
 
   return res.status(200).json({
+    success: true,
     message: "User created successfully",
     token: token,
   });
 });
 
 userRouter.post("/signin", async (req, res) => {
+  console.log("In signin");
   const body = req.body;
   const { success } = signinZod.safeParse(body);
   if (!success) {
     return res.status(411).json({
       message: "Invalid data has been sent",
+      success: false,
+      token: null,
     });
   }
-
+  console.log("Passes zod");
   const user = await User.findOne({
     username: body.username,
   });
+  console.log(user);
   if (!user) {
-    return res.status(403).json({
+    return res.status(200).json({
       message: "Invalid user",
+      success: false,
+      token: null,
     });
   }
   const salt = body.username.split("@")[0];
-  //console.log(salt);
+  console.log(salt);
   const comparePassword = await hashPassword(body.password, salt);
   //console.log(user);
+  console.log(comparePassword.hash);
   if (comparePassword.hash !== user.password) {
-    return res.status(403).json({
+    return res.status(200).json({
       message: "Inccorect Password",
+      success: false,
+      token: null,
     });
   }
   if (!user) {
     return res.status(411).json({
       message: "User doesn't exist",
+      success: false,
+      token: null,
     });
   }
 
@@ -117,6 +131,7 @@ userRouter.post("/signin", async (req, res) => {
   );
 
   return res.status(200).json({
+    message: "User signed in successfully",
     success: true,
     token: token,
   });
@@ -127,6 +142,7 @@ userRouter.put("/", authMiddleware, async (req, res) => {
   const { success } = updateZod.safeParse(body);
   if (!success) {
     return res.status(411).json({
+      success: false,
       message: "Error wrong inputs",
     });
   }
@@ -137,10 +153,12 @@ userRouter.put("/", authMiddleware, async (req, res) => {
 
   if (!updated) {
     return res.status(411).json({
+      success: false,
       message: "Internal error",
     });
   }
   return res.status(200).json({
+    success: true,
     message: "Details updated successfully",
   });
 });
@@ -185,7 +203,7 @@ userRouter.get("/userinfo", authMiddleware, async (req, res) => {
     }
     //console.log(userId);
     const currentUser = await User.findById(userId).select("-password");
-    return res.json(currentUser);
+    return res.status(200).json(currentUser);
   } catch (error) {
     console.log(error.message);
     return res.status(411).send(error);

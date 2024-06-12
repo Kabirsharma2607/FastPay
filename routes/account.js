@@ -31,12 +31,14 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
   if (!account) {
     await session.abortTransaction();
     return res.status(400).json({
+      success: false,
       message: "No account",
     });
   }
   if (!account || account.balance < amount) {
     await session.abortTransaction();
     return res.status(400).json({
+      success: false,
       message: "Insufficient balance",
     });
   }
@@ -48,6 +50,7 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
   if (!toAccount) {
     await session.abortTransaction();
     return res.status(400).json({
+      success: false,
       message: "Account does not exist",
     });
   }
@@ -77,6 +80,7 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
   await session.commitTransaction();
 
   return res.status(200).json({
+    success: true,
     message: "Transfer successful",
   });
 });
