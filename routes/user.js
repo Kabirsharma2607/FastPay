@@ -137,7 +137,7 @@ userRouter.post("/signin", async (req, res) => {
   });
 });
 
-userRouter.put("/", authMiddleware, async (req, res) => {
+userRouter.put("/update", authMiddleware, async (req, res) => {
   const body = req.body;
   const { success } = updateZod.safeParse(body);
   if (!success) {
