@@ -47,8 +47,8 @@ userRouter.post("/signup", async (req, res) => {
   }
   const newPassword = await hashPassword(body.password, "abcdefg");
 
-  console.log(newPassword);
-  console.log();
+  //console.log(newPassword);
+  //console.log();
   const user = await User.create({
     username: body.username,
     password: newPassword,
@@ -158,7 +158,7 @@ userRouter.get("/bulk", authMiddleware, async (req, res) => {
     lastName: user.lastName,
     _id: user._id,
   }));
-  console.log(allUsers);
+  //console.log(allUsers);
   return res.json({
     users: allUsers,
   });
@@ -172,7 +172,7 @@ userRouter.get("/userinfo", authMiddleware, async (req, res) => {
         message: "User not found.",
       });
     }
-    console.log(userId);
+    //console.log(userId);
     const currentUser = await User.findById(userId).select("-password");
     return res.json(currentUser);
   } catch (error) {

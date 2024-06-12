@@ -7,11 +7,11 @@ const accountRouter = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 accountRouter.get("/balance", authMiddleware, async (req, res) => {
   const body = req.body;
-  console.log(body);
+  //console.log(body);
   const account = await Account.findOne({
     userId: req.userId,
   });
-  console.log(account);
+  //console.log(account);
   return res.status(200).json({
     balance: account.balance,
   });
@@ -23,11 +23,11 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
   session.startTransaction();
 
   const { amount, to } = req.body;
-  console.log(req.userId);
+  // console.log(req.userId);
   const account = await Account.findOne({
     userId: req.userId,
   }).session(session);
-  console.log(account);
+  //console.log(account);
   if (!account) {
     await session.abortTransaction();
     return res.status(400).json({
