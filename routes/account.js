@@ -1,15 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const JWT_SECRET = process.env.JWT_SECRET;
 const { authMiddleware } = require("../middleware");
 const { Account } = require("../db");
 const accountRouter = express.Router();
 
+const JWT_SECRET = process.env.JWT_SECRET;
 accountRouter.get("/balance", authMiddleware, async (req, res) => {
   const body = req.body;
   console.log(body);
   const account = await Account.findOne({
-    userId: body.userId,
+    userId: req.userId,
   });
   console.log(account);
   return res.status(200).json({

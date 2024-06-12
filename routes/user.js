@@ -4,6 +4,7 @@ const { User, Account } = require("../db");
 const JWT_SECRET = process.env.JWT_SECRET;
 const jwt = require("jsonwebtoken");
 const { authMiddleware } = require("../middleware");
+const { hashPassword } = require("../utils");
 
 const userRouter = express.Router();
 
@@ -28,6 +29,7 @@ const updateZod = zod.object({
 userRouter.post("/signup", async (req, res) => {
   const body = req.body;
   const { success } = userZod.safeParse(body);
+
   if (!success) {
     return res.status(411).json({
       message: "Email already used / Inorrect Inputs",
@@ -43,10 +45,13 @@ userRouter.post("/signup", async (req, res) => {
       message: "User Already Exists",
     });
   }
+  const newPassword = await hashPassword(body.password, "abcdefg");
 
+  console.log(newPassword);
+  console.log();
   const user = await User.create({
     username: body.username,
-    password: body.password,
+    password: newPassword,
     firstName: body.firstName,
     lastName: body.lastName,
   });
@@ -79,6 +84,8 @@ userRouter.post("/signin", async (req, res) => {
       message: "Invalid data has been sent",
     });
   }
+
+  const comparePassword = await hashPassword(body.password, "abcdefg");
 
   const user = await User.findOne({
     username: body.username,
@@ -129,6 +136,7 @@ userRouter.put("/", authMiddleware, async (req, res) => {
 
 userRouter.get("/bulk", authMiddleware, async (req, res) => {
   const filter = req.query.filter || "";
+  //console.log(req.body.username);
   const users = await User.find({
     $or: [
       {
@@ -155,4 +163,22 @@ userRouter.get("/bulk", authMiddleware, async (req, res) => {
     users: allUsers,
   });
 });
+
+userRouter.get("/userinfo", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req;
+    if (!userId) {
+      return res.status(411).json({
+        message: "User not found.",
+      });
+    }
+    console.log(userId);
+    const currentUser = await User.findById(userId).select("-password");
+    return res.json(currentUser);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(411).send(error);
+  }
+});
+
 module.exports = userRouter;
