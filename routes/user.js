@@ -45,7 +45,8 @@ userRouter.post("/signup", async (req, res) => {
       message: "User Already Exists",
     });
   }
-  const newPassword = await hashPassword(body.password, "abcdefg");
+  const salt = body.username.split("@")[0];
+  const newPassword = await hashPassword(body.password, salt);
 
   //console.log(newPassword);
   //console.log();
@@ -85,8 +86,6 @@ userRouter.post("/signin", async (req, res) => {
     });
   }
 
-  const comparePassword = await hashPassword(body.password, "abcdefg");
-
   const user = await User.findOne({
     username: body.username,
   });
@@ -95,6 +94,9 @@ userRouter.post("/signin", async (req, res) => {
       message: "Invalid user",
     });
   }
+  const salt = body.username.split("@")[0];
+  //console.log(salt);
+  const comparePassword = await hashPassword(body.password, salt);
   //console.log(user);
   if (comparePassword.hash !== user.password) {
     return res.status(403).json({
