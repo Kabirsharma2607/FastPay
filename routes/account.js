@@ -19,7 +19,6 @@ accountRouter.get("/balance", authMiddleware, async (req, res) => {
 
 accountRouter.post("/transfer", authMiddleware, async (req, res) => {
   const session = await mongoose.startSession();
-
   session.startTransaction();
 
   const { amount, to } = req.body;
@@ -27,17 +26,18 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
   const account = await Account.findOne({
     userId: req.userId,
   }).session(session);
-  //console.log(account);
+
   if (!account) {
     await session.abortTransaction();
-    return res.status(400).json({
+    return res.status(200).json({
       success: false,
       message: "No account",
     });
   }
+
   if (!account || account.balance < amount) {
     await session.abortTransaction();
-    return res.status(400).json({
+    return res.status(200).json({
       success: false,
       message: "Insufficient balance",
     });
@@ -49,7 +49,7 @@ accountRouter.post("/transfer", authMiddleware, async (req, res) => {
 
   if (!toAccount) {
     await session.abortTransaction();
-    return res.status(400).json({
+    return res.status(200).json({
       success: false,
       message: "Account does not exist",
     });
